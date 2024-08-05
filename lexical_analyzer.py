@@ -43,7 +43,6 @@ def is_number(word):
 
 def is_parentesis(word):
     if re.match(r'^(\(|\))', word) is not None:
-        # print('Chegou aqui')
         return True
     return False
 
@@ -189,7 +188,6 @@ def split_words(line):
         else:
             if terminate_word(char):
                 words.append(string)
-                # print('Terminator ', char.encode('utf-8'))
                 if char != ' ' and char != '\r' and char != '\n':
                     string = char
                     words.append(string)
@@ -200,32 +198,6 @@ def split_words(line):
             else :
                 string += char
 
-    # for char in line:
-    #     if char == '📓' or char == '📄':
-    #         if isString:
-    #             string += char
-    #             words.append(string)
-    #             isString = False
-    #             string = ''
-    #         else:
-    #             words.append(string)
-    #             string = char
-    #             isString = True
-    #     else:
-    #         if not isString:
-    #             if char == ' ' or char == '\r':
-    #                 words.append(string)
-    #                 string = ''
-    #             else:
-    #                 if terminate_word(char):
-    #                     words.append(string)
-    #                     string = ''
-    #                     words.append(char)
-    #                 else:
-    #                     string += char
-    #         else:
-    #             string += char
-
     if string:
         words.append(string)
 
@@ -233,9 +205,6 @@ def split_words(line):
 
     if words and (words[0] == "" or words[0].isspace()):
         words = words[1:]
-
-    for word in words:
-        print(word)
 
     token_list = []
     for word in words:
@@ -258,8 +227,7 @@ with open('testfile.zoz', 'rb') as file:
         tokens = split_words(line)
         if tokens and tokens[0] == None:
             print("Ocorreu um erro na linha ", i)
-            # print("Token ", tokens[1], " não reconhecido")
-            print("Token ", tokens[1].encode('utf-8'), " não reconhecido")
+            print("Token ", tokens[1], " não reconhecido")
             print(line)
             break
 
