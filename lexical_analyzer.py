@@ -79,6 +79,38 @@ def is_reserved_word(word):
         return True
     return False
 
+def get_reserved_token(word):
+    if word == 'number':
+        return 'reserved_type_number'
+    if word == 'char':
+        return 'reserved_type_char'
+    if word == 'String':
+        return 'reserved_type_string'
+    if word == 'Struct':
+        return 'reserved_type_struct'
+    if word == 'if':
+        return 'reserved_directive_if'
+    if word == 'else':
+        return 'reserved_directive_else'
+    if word == 'loop':
+        return 'reserved_directive_loop'
+    if word == 'main':
+        return 'identifier'
+    if word == 'read':
+        return 'reserved_func_read'
+    if word == 'write':
+        return 'reserved_func_write'
+    if word == 'input':
+        return 'reserved_func_input'
+    if word == 'print':
+        return 'reserved_func_print'
+    print(f'Error: -{word}- found')
+    return False
+
+def is_comma(word):
+    if word == ',':
+        return True
+
 def define_token(word):
     if is_emote(word) == True:
         return word
@@ -99,7 +131,7 @@ def define_token(word):
 
     if is_letter(word[0]):
         if is_reserved_word(word) == True:
-            return 'reserved_word'
+            return get_reserved_token(word)  
         if is_identifier(word) == True:
             return 'identifier'
 
@@ -110,7 +142,10 @@ def define_token(word):
         return 'string'
 
     if word == '=':
-        return '='
+        return 'op_attr'
+
+    if is_comma(word):
+        return 'comma'
 
     return (None, word) 
 
@@ -122,6 +157,8 @@ def terminate_word(char):
     if char == '*' or char == '/':
         return True
     if char == ' ' or char == '\r' or char == '\n':
+        return True
+    if char == ',':
         return True
     return False
 
@@ -152,6 +189,7 @@ def split_words(line, line_number):
     isString = False
     couldBeLogic = False
     string = ''
+    line = line.replace('\xa0', ' ')
     line = line.lstrip()
     line = line.rstrip()
     words = []
@@ -159,8 +197,9 @@ def split_words(line, line_number):
     isString = False
     isFinished = False
     isLogic = False
-
+    print(line)
     for char in line:
+        print(char)
         if isString == True:
             isFinished, isString = split_string(char, isString)
             string += char
@@ -202,13 +241,14 @@ def split_words(line, line_number):
     if string:
         words.append(string)
 
-    words = [word for word in words if (word and word != ' ' and word != '\r' and word != '\n')]
+    words = [word for word in words if (word and word != ' ' and word != '\r' and word != '\n' and word != '\t' and word != 'xa0')]
 
     if words and (words[0] == "" or words[0].isspace()):
         words = words[1:]
 
     token_list = []
     for word in words:
+        print(word)
         token_type = define_token(word)
         if token_type == (None, word):
             return (None, word)
@@ -229,7 +269,7 @@ with open('code_files/' + filename, 'rb') as file:
         tokens = split_words(line, i)
         if tokens and tokens[0] == None:
             print("Ocorreu um erro na linha ", i)
-            print("Token ", tokens[1], " não reconhecido")
+            print("Token ", repr(tokens[1]), " não reconhecido")
             print(line)
             break
 
