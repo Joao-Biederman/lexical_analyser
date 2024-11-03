@@ -1,4 +1,5 @@
 import re
+from TokenClass import Token
 
 def clean_line(line):
     cleaned_line = re.sub(r'💭.*?💭', '', line)
@@ -27,7 +28,7 @@ def is_math_operator(word):
 def is_logic_operator(word):
     if re.match(r'^(<|>)', word) is not None:
         return True
-    if re.match(r'^(=|>|<)(=)', word) is not None:
+    if re.match(r'^(= | >|<)(=)', word) is not None:
         return True
     return False
 
@@ -147,7 +148,7 @@ def split_string(char, isString):
         isString = True
     return isFinished, isString
 
-def split_words(line):
+def split_words(line, line_number):
     isString = False
     couldBeLogic = False
     string = ''
@@ -208,10 +209,10 @@ def split_words(line):
 
     token_list = []
     for word in words:
-        token = define_token(word)
-        if token == (None, word):
+        token_type = define_token(word)
+        if token_type == (None, word):
             return (None, word)
-        token_list.append((word, token))
+        token_list.append(Token(token=word, type=token_type, line=line_number))
     return token_list
 
 with open('testfile.zoz', 'rb') as file:
@@ -224,16 +225,16 @@ with open('testfile.zoz', 'rb') as file:
         flags = (isString, isComment)
         line = line.decode('utf-8')
         line = clean_line(line)
-        tokens = split_words(line)
+        tokens = split_words(line, i)
         if tokens and tokens[0] == None:
             print("Ocorreu um erro na linha ", i)
             print("Token ", tokens[1], " não reconhecido")
             print(line)
             break
 
-        token_list += split_words(line)
+        token_list += split_words(line, i)
         i += 1
 
     print ('tokens')
     for token in token_list:
-        print(token)
+        print(f'Token: \n  Valor:{token.token}\n  Tipo:{token.type}\n  Linha:{token.line}')
