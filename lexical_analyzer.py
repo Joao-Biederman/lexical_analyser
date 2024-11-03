@@ -215,7 +215,8 @@ def split_words(line, line_number):
         token_list.append(Token(token=word, type=token_type, line=line_number))
     return token_list
 
-with open('testfile.zoz', 'rb') as file:
+filename = 'testfile.zoz'
+with open('code_files/' + filename, 'rb') as file:
     lines = file.readlines()
     i = 1
     token_list = []
