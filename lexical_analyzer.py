@@ -1,5 +1,5 @@
 import re
-from TokenClass import Token
+from .token_class import Token
 
 def clean_line(line):
     cleaned_line = re.sub(r'💭.*?💭', '', line)
@@ -26,9 +26,11 @@ def is_math_operator(word):
     return False
 
 def is_logic_operator(word):
-    if re.match(r'^(<|>)', word) is not None:
+    if re.match(r'^(< | >)', word) is not None:
         return True
-    if re.match(r'^(= | >|<)(=)', word) is not None:
+    if re.match(r'^(= | > | < )(=)', word) is not None:
+        return True
+    if word == "==":
         return True
     return False
 
@@ -95,7 +97,7 @@ def get_reserved_token(word):
     if word == 'loop':
         return 'reserved_directive_loop'
     if word == 'main':
-        return 'identifier'
+        return 'id'
     if word == 'read':
         return 'reserved_func_read'
     if word == 'write':
@@ -111,12 +113,21 @@ def is_comma(word):
     if word == ',':
         return True
 
-def define_token(word):
-    if is_emote(word) == True:
-        return word
+def get_logic_op(word):
+    if word == '>':
+        return 'op_logic_greater'
+    if word == '>=':
+        return 'op_logic_greater_equal'
+    if word == '<':
+        return 'op_logic_smaller'
+    if word == '<=':
+        return 'op_logic_smaller_equal'
+    if word == '==':
+        return 'op_logic_equal'
 
-    if is_parentesis(word) == True:
-        return word
+def define_token(word):
+    if testasaporra(word):
+        return get_type(word)
 
     if is_number(word[0]):
         if is_number(word) == True:
@@ -127,13 +138,13 @@ def define_token(word):
         return 'math_operator'
 
     if is_logic_operator(word) == True:
-        return 'logic_operator'
+        return get_logic_op(word)
 
     if is_letter(word[0]):
         if is_reserved_word(word) == True:
             return get_reserved_token(word)  
         if is_identifier(word) == True:
-            return 'identifier'
+            return 'id'
 
     if is_char(word):
         return 'char'
@@ -185,6 +196,52 @@ def split_string(char, isString):
         isString = True
     return isFinished, isString
 
+def get_type(word):
+    if word == '🏁':
+        return 'initial_block'
+    if word == '🏳': 
+        return 'final_block'
+    if word == '☕':
+        return 'end_of_line'
+    if word == '➕':
+        return 'op_arit_sum'
+    if word == '➖':
+        return 'op_arit_sub'
+    if word == '(':
+        return 'initial_parenthesis'
+    if word == ')':
+        return 'final_parenthesis'
+    if word == '*': 
+        return 'op_arit_mult'
+    if word == '/':
+        return 'op_arit_div'
+    if word == ',':
+        return 'comma'
+
+
+def testasaporra(word):
+    if word == '🏁':
+        return True
+    if word == '🏳': 
+        return True
+    if word == '☕':
+        return True
+    if word == '➕':
+        return True
+    if word == '➖':
+        return True
+    if word == '(':
+        return True
+    if word == ')':
+        return True
+    if word == '*': 
+        return True
+    if word == '/':
+        return True
+    if word == ',':
+        return True
+    return False
+
 def split_words(line, line_number):
     isString = False
     couldBeLogic = False
@@ -197,9 +254,9 @@ def split_words(line, line_number):
     isString = False
     isFinished = False
     isLogic = False
-    print(line)
+    # print(line)
     for char in line:
-        print(char)
+        # print(char)
         if isString == True:
             isFinished, isString = split_string(char, isString)
             string += char
@@ -230,7 +287,8 @@ def split_words(line, line_number):
                 words.append(string)
                 if char != ' ' and char != '\r' and char != '\n':
                     string = char
-                    words.append(string)
+                    if testasaporra(char):
+                        words.append(char)
                 string = ''
             elif char == '📓' or char == '📄':
                 isString = True
@@ -248,34 +306,44 @@ def split_words(line, line_number):
 
     token_list = []
     for word in words:
-        print(word)
         token_type = define_token(word)
         if token_type == (None, word):
             return (None, word)
         token_list.append(Token(token=word, type=token_type, line=line_number))
     return token_list
 
-filename = 'testfile.zoz'
-with open('code_files/' + filename, 'rb') as file:
-    lines = file.readlines()
-    i = 1
-    token_list = []
-    isComment = False
-    isString = False
-    for line in lines:
-        flags = (isString, isComment)
-        line = line.decode('utf-8')
-        line = clean_line(line)
-        tokens = split_words(line, i)
-        if tokens and tokens[0] == None:
-            print("Ocorreu um erro na linha ", i)
-            print("Token ", repr(tokens[1]), " não reconhecido")
-            print(line)
-            break
+def get_token_list(filename):
+    with open('lexical_analyser/code_files/' + filename, 'rb') as file:
+        lines = file.readlines()
+        i = 1
+        token_list = []
+        isComment = False
+        isString = False
+        for line in lines:
+            flags = (isString, isComment)
+            line = line.decode('utf-8')
+            line = clean_line(line)
+            tokens = split_words(line, i)
+            if tokens and tokens[0] == None:
+                print("Ocorreu um erro na linha ", i)
+                print("Token ", repr(tokens[1]), " não reconhecido")
+                print(line)
+                break
 
-        token_list += split_words(line, i)
-        i += 1
+            token_list += split_words(line, i)
+            i += 1
 
-    print ('tokens')
-    for token in token_list:
-        print(f'Token: \n  Valor:{token.token}\n  Tipo:{token.type}\n  Linha:{token.line}')
+        # print ('tokens')
+        with open('token.json', 'w') as out:
+            out.write("[\n")
+            i = False
+            for token in token_list:
+                if (i):
+                    out.write(',\n')
+                
+                out.write("    {\n")
+                out.write(f'        "value":"{token.token}",\n        "type":"{token.type}",\n        "line":{token.line}\n')
+                out.write("    }")
+                i = True
+            
+            out.write("\n]")
