@@ -126,7 +126,7 @@ def get_logic_op(word):
         return 'op_logic_equal'
 
 def define_token(word):
-    if testasaporra(word):
+    if get_reserved_token(word):
         return get_type(word)
 
     if is_number(word[0]):
@@ -219,7 +219,7 @@ def get_type(word):
         return 'comma'
 
 
-def testasaporra(word):
+def get_reserved_token(word):
     if word == '🏁':
         return True
     if word == '🏳': 
@@ -287,7 +287,7 @@ def split_words(line, line_number):
                 words.append(string)
                 if char != ' ' and char != '\r' and char != '\n':
                     string = char
-                    if testasaporra(char):
+                    if get_reserved_token(char):
                         words.append(char)
                 string = ''
             elif char == '📓' or char == '📄':
